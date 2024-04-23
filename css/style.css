@@ -1,0 +1,125 @@
+:root{
+  --day-width: 40px;
+  --active-border: 1px solid black;
+  --background: #F1F1F1;
+  --border: 1px solid white;
+  --border-radius: 0px;
+  --color: black;
+  --empty: white;
+  --gap: 0px;
+  --font-size: 14px;
+  --font-size-days: 20px;
+  --font-size-ym: 20px;
+}
+
+.calendar-js {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+
+  width: fit-content;
+
+  box-sizing: border-box;
+}
+
+.calendar-js .calendar-js-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.calendar-js .calendar-js-header .calendar-js-month {
+  font-size: var(--font-size-ym);
+  text-transform: uppercase;
+  width: 200px;
+  text-align: center;
+}
+
+.calendar-js .calendar-js-header button {
+  background-color: transparent;
+  border: none;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.calendar-js .calendar-js-days {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 25px;
+  gap: var(--gap);
+}
+
+.calendar-js .calendar-js-days .calendar-js-day {
+  font-size: var(--font-size-days);
+  text-align: center;
+  text-transform: uppercase;
+  width: var(--day-width);
+}
+
+.calendar-js .calendar-js-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.calendar-js .calendar-js-body .calendar-js-week {
+  display: grid;
+  grid-template-columns: repeat(7, var(--day-width) );
+  gap: var(--gap);
+  /* padding: 0 15px; */
+}
+
+.calendar-js .calendar-js-body .calendar-js-week .calendar-js-week-day {
+  font-size: var(--font-size);
+  color: var(--color);
+  width: var(--day-width);
+  height: var(--day-width);
+
+  border: var(--border);
+  box-sizing: border-box;
+  border-radius: var(--border-radius);
+  background: var(--background);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.calendar-js .calendar-js-body .calendar-js-week .calendar-js-current-day {
+  border: var(--active-border);
+  /* background: var(--active-background);
+  color: var(--active-color); */
+}
+
+.calendar-js .calendar-js-body .calendar-js-week .calendar-js-no-day {
+  background: var(--empty);
+  border: none;
+}
+
+.calendar-js .calendar-legends {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.calendar-js .calendar-js-legends .calendar-js-legend {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-js .calendar-js-legends .calendar-js-legend .calendar-js-legend-sample {
+  width: var(--day-width);
+  height: var(--day-width);
+  border-radius: var(--border-radius);
+}
+
+.calendar-js .calendar-js-legends .calendar-js-legend .calendar-js-legend-description {
+  text-align: start;
+  font-size: var(--font-size);
+}

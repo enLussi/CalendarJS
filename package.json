@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "commonjs": "^0.0.1",
+    "jsmin": "^1.0.1",
+    "requirejs": "^2.3.6",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5"
+  },
+  "scripts": {
+    "minify": "jsmin -o build/calendar.complete.min.js build/calendar.complete.js",
+    "build": "npx tsc -p tsconfig.json && npm run minify"
+  }
+}
