@@ -7,7 +7,7 @@
     "isolatedModules": true,
     "moduleResolution": "node",
     "lib": ["ESNext", "dom"],
-    "outDir": "build",
+    "outDir": "js",
     "sourceRoot": "./ts/",
     "rootDir": "./ts/",
     "sourceMap": true,

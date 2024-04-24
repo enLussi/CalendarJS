@@ -7,7 +7,7 @@
     "typescript": "^5.4.5"
   },
   "scripts": {
-    "minify": "jsmin -o build/calendar.complete.min.js build/calendar.complete.js",
+    "minify": "jsmin -o js/calendar.complete.min.js js/calendar.complete.js",
     "build": "npx tsc -p tsconfig.json && npm run minify"
   }
 }
