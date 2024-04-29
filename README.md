@@ -7,7 +7,7 @@ Calendar JS is a lightweight, customable and easy to use tool used for displayin
 <link rel="stylesheet" href="/css/calendar.default.css">
 <div id="calendar"></div>
 <script>
-  new Calendar("#calendar2", {});
+  new Calendar("#calendar", {});
 </script> 
 ```
 
