@@ -1,5 +1,18 @@
 
 // Types
+
+type CalendarGeneralStyleDefaultPadding = number;
+type CalendarGeneralStyleHVPadding = {
+  horizontal: number;
+  vertical: number;
+};
+type CalendarGeneralStyleFullPadding = {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
 type CalendarGeneralStyleCells = {
   border: string,
   borderRadius: number,
@@ -12,15 +25,23 @@ type CalendarGeneralStyleCells = {
   bgEmpty: string,
   gap: number,
   fontSize: number,
-  fontSizeDays: number,
-  fontSizeYM: number,
 }
 
-type CalendarLegend = {
-  show: boolean
+type CalendarGeneralStyleCalendar = {
+  border: string;
+  borderRadius: string;
+  bg: string;
+  color: string;
+  fontSizeDays: number;
+  fontSizeYM: number;
+  padding: CalendarGeneralStyleDefaultPadding | CalendarGeneralStyleHVPadding | CalendarGeneralStyleFullPadding;
 }
+
+type CalendarLegend = 'show' | 'hide';
+
 
 type CalendarGeneralStyle = {
+  calendar: CalendarGeneralStyleCalendar,
   cells: CalendarGeneralStyleCells,
   font: string
 }
@@ -44,6 +65,7 @@ type Data = {
   lang: AvailableLang;
   current_date: Date;
   display_date: Date;
+  legend: CalendarLegend
 }
 
 type AvailableLang = "FR" | "EN" | "ES" | "DE";
@@ -180,17 +202,57 @@ function isSameDate(reference: Date, to_compare: Date): boolean {
 function applyStyle(style: CalendarGeneralStyle) {
   let root = document.querySelector(':root');
   if(!!root && root instanceof HTMLElement) {
-    !!style.cells.size && root.style.setProperty('--day-width', `${style.cells.size}px`);
-    !!style.cells.activeBorder && root.style.setProperty('--active-border', style.cells.activeBorder);
-    !!style.cells.bg && root.style.setProperty('--background', style.cells.bg);
-    !!style.cells.border && root.style.setProperty('--border', style.cells.border);
-    !!style.cells.borderRadius && root.style.setProperty('--border-radius', `${style.cells.borderRadius}px`);
-    !!style.cells.color && root.style.setProperty('--color', style.cells.color);
-    !!style.cells.bgEmpty && root.style.setProperty('--empty', style.cells.bgEmpty);
-    !!style.cells.gap && root.style.setProperty('--gap', `${style.cells.gap}px`);
-    !!style.cells.fontSize && root.style.setProperty('--font-size', `${style.cells.fontSize}px`);
-    !!style.cells.fontSizeDays && root.style.setProperty('--font-size-days', `${style.cells.fontSizeDays}px`);
-    !!style.cells.fontSizeYM && root.style.setProperty('--font-size-ym', `${style.cells.fontSizeYM}px`);
+    //Cells
+    if(!!style.cells) {
+      !!style.cells.size && root.style.setProperty('--day-width', `${style.cells.size}px`);
+      !!style.cells.activeBorder && root.style.setProperty('--active-border', style.cells.activeBorder);
+      !!style.cells.bg && root.style.setProperty('--background-cells', style.cells.bg);
+      !!style.cells.border && root.style.setProperty('--border-cells', style.cells.border);
+      !!style.cells.borderRadius && root.style.setProperty('--border-radius-cells', `${style.cells.borderRadius}px`);
+      !!style.cells.color && root.style.setProperty('--color-cells', style.cells.color);
+      !!style.cells.bgEmpty && root.style.setProperty('--empty', style.cells.bgEmpty);
+      !!style.cells.gap && root.style.setProperty('--gap', `${style.cells.gap}px`);
+      !!style.cells.fontSize && root.style.setProperty('--font-size-cells', `${style.cells.fontSize}px`);
+    }
+
+
+    //Calendar
+    if(!!style.calendar) {
+      !!style.calendar.fontSizeDays && root.style.setProperty('--font-size-days', `${style.calendar.fontSizeDays}px`);
+      !!style.calendar.fontSizeYM && root.style.setProperty('--font-size-ym', `${style.calendar.fontSizeYM}px`);
+      !!style.calendar.bg && root.style.setProperty('--background-cal', style.calendar.bg);
+      !!style.calendar.border && root.style.setProperty('--border-cal', style.calendar.border);
+      !!style.calendar.borderRadius && root.style.setProperty('--border-radius-cal', `${style.calendar.borderRadius}px`);
+      !!style.calendar.color && root.style.setProperty('--color-cal', style.calendar.color);
+      if(!!style.calendar.padding) {
+        if(typeof style.calendar.padding === 'number') {
+          let padding = style.calendar.padding as CalendarGeneralStyleDefaultPadding;
+          !!padding && root.style.setProperty('--padding-top-cal', `${padding}px`);
+          !!padding && root.style.setProperty('--padding-bottom-cal', `${padding}px`);
+          !!padding && root.style.setProperty('--padding-right-cal', `${padding}px`);
+          !!padding && root.style.setProperty('--padding-left-cal', `${padding}px`);
+        }
+        else if(
+          'top' in style.calendar.padding || 
+          'bottom' in style.calendar.padding || 
+          'left' in style.calendar.padding ||
+          'right' in style.calendar.padding) {
+            let padding = style.calendar.padding as CalendarGeneralStyleFullPadding;
+            !!padding.top && root.style.setProperty('--padding-top-cal', `${padding.top}px`);
+            !!padding.bottom && root.style.setProperty('--padding-bottom-cal', `${padding.bottom}px`);
+            !!padding.right && root.style.setProperty('--padding-right-cal', `${padding.right}px`);
+            !!padding.left && root.style.setProperty('--padding-left-cal', `${padding.left}px`);
+        } else if(
+          'horizontal' in style.calendar.padding || 
+          'vertical' in style.calendar.padding ) {
+            let padding = style.calendar.padding as CalendarGeneralStyleHVPadding;
+            !!padding.vertical && root.style.setProperty('--padding-top-cal', `${padding.vertical}px`);
+            !!padding.vertical && root.style.setProperty('--padding-bottom-cal', `${padding.vertical}px`);
+            !!padding.horizontal && root.style.setProperty('--padding-right-cal', `${padding.horizontal}px`);
+            !!padding.horizontal && root.style.setProperty('--padding-left-cal', `${padding.horizontal}px`);
+        }
+      }
+    }
   }
 }
 
@@ -214,6 +276,8 @@ class Calendar {
   private status: Array<CalendarDataStatus>;
   private style: CalendarGeneralStyle;
 
+  private legend: CalendarLegend;
+
   constructor(
     id: string, 
     data: Data
@@ -235,6 +299,8 @@ class Calendar {
     this.calendar       = data.calendar;
     this.status         = data.status;
     this.style          = data.style;
+
+    this.legend         = !!data.legend ? data.legend : 'hide';
 
     applyStyle(this.style);
     this.create();
@@ -270,7 +336,9 @@ class Calendar {
     this.ctx.appendChild(this.create_header(this.ctx));
     this.ctx.appendChild(this.create_days_column(this.ctx));
     this.ctx.appendChild(this.create_weeks(this.ctx));
-    this.ctx.appendChild(this.create_legends(this.ctx));
+    if(this.legend === 'show') {
+      this.ctx.appendChild(this.create_legends(this.ctx));
+    }
     return true;
   }
 
@@ -419,14 +487,15 @@ class Calendar {
   private apply_data(element: HTMLElement, day: Date) {
       this.calendar.forEach((data) => {
         if(data.date !== undefined && day.valueOf() === data.date.valueOf()){
-          element.style.background = !!this.status[data.status].bg ? 
-            this.status[data.status].bg : 
+          let status = !!data.status ? data.status : 0;
+          element.style.background = !!this.status[status].bg ? 
+            this.status[status].bg : 
             !!this.style.cells.bg ? this.style.cells.bg : "#F1F1F1" ;
-          element.style.color = !!this.status[data.status].color ? 
-            this.status[data.status].color : 
+          element.style.color = !!this.status[status].color ? 
+            this.status[status].color : 
             "none";
-          element.style.border = !!this.status[data.status].border ? 
-            this.status[data.status].border : 
+          element.style.border = !!this.status[status].border ? 
+            this.status[status].border : 
             "none";
         }
       })

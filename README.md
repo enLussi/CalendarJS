@@ -28,20 +28,36 @@ The second parameter of the Calendar Class constructor is an array containing:
 ## Example
 ```javascript
 new Calendar("#calendar", {
-  calendar: {
-    date: new Date(2024, 3, 24),
-    status: 0
-  },
-  status: [
+  calendar: [
     {
+      date: new Date(2024, 3, 24),            
+      status: 0                               // By default 0 if not set
+    }
+  ],
+  status: [
+    {                                         // Status style
       bg: "#0F1B38",
       color: "white",
       border: "2px solid #0F1B38",
-      legend: "Full"
+      legend: "Full"                          // status label 
     }
   ],
   style: {
-    cells: {
+    calendar: {                               // Calendar General Style
+      border: '1px solid #f1f1f1',
+      borderRadius: 2,
+      bg: 'white',
+      color: 'black',
+      fontSizeDays: 15,
+      fontSizeYM: 20,
+      padding: {
+        top: 10,
+        bottom: 20,
+        right: 5,
+        left: 5
+      }
+    }
+    cells: {                                  // Default cells style
       border: "2px solid #f2f3f4",
       borderRadius: 3,
       bg: "#f8f9f9",
@@ -51,13 +67,12 @@ new Calendar("#calendar", {
       color: "black",
       gap: 7,
       fontSize: 14,
-      fontSizeDays: 15,
-      fontSizeYM: 20
     }
   },
-  lang: "FR",
-  display_date: new Date(2024, 3),
-  current_date: new Date()
+  lang: "FR",                                 // Lang by default EN
+  display_date: new Date(2024, 3),            // Month Display on load
+  current_date: new Date(),                   // Date highlight
+  legend: 'show'                              // Legend showed or hidden
 })
 ```
 

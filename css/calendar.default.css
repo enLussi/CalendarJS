@@ -1,25 +1,38 @@
 :root{
   --day-width: 40px;
   --active-border: 1px solid black;
-  --background: #F1F1F1;
-  --border: 1px solid white;
-  --border-radius: 0px;
-  --color: black;
+  --background-cells: #F1F1F1;
+  --border-cells: 1px solid white;
+  --border-radius-cells: 0px;
+  --color-cells: black;
   --empty: white;
   --gap: 0px;
-  --font-size: 14px;
+  --font-size-cells: 14px;
+
   --font-size-days: 20px;
   --font-size-ym: 20px;
+  --border-cal: 1px solid #f1f1f1;
+  --border-radius-cal: 0px;
+  --background-cal: white;
+  --color-cal: black;
+  --padding-top-cal: 0px;
+  --padding-bottom-cal: 0px;
+  --padding-left-cal: 0px;
+  --padding-right-cal: 0px;
 }
 
 .calendar-js {
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: var(--padding-top-cal) var(--padding-right-cal) var(--padding-bottom-cal) var(--padding-left-cal);
 
   width: fit-content;
 
   box-sizing: border-box;
+
+  border: var(--border-cal);
+  border-radius: var(--border-radius-cal);
+  background: var(--background-cal);
 }
 
 .calendar-js .calendar-js-header {
@@ -73,15 +86,15 @@
 }
 
 .calendar-js .calendar-js-body .calendar-js-week .calendar-js-week-day {
-  font-size: var(--font-size);
-  color: var(--color);
+  font-size: var(--font-size-cells);
+  color: var(--color-cells);
   width: var(--day-width);
   height: var(--day-width);
 
-  border: var(--border);
+  border: var(--border-cells);
   box-sizing: border-box;
-  border-radius: var(--border-radius);
-  background: var(--background);
+  border-radius: var(--border-radius-cells);
+  background: var(--background-cells);
 
   display: flex;
   justify-content: center;
@@ -116,10 +129,10 @@
 .calendar-js .calendar-js-legends .calendar-js-legend .calendar-js-legend-sample {
   width: var(--day-width);
   height: var(--day-width);
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-cells);
 }
 
 .calendar-js .calendar-js-legends .calendar-js-legend .calendar-js-legend-description {
   text-align: start;
-  font-size: var(--font-size);
+  font-size: var(--font-size-cells);
 }
