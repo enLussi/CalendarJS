@@ -67,12 +67,15 @@ new Calendar("#calendar", {
       color: "black",
       gap: 7,
       fontSize: 14,
+    },
+    legend: {                                 // Default legend positionning
+      visibility: 'show',
+      position: 'bottom'
     }
   },
   lang: "FR",                                 // Lang by default EN
   display_date: new Date(2024, 3),            // Month Display on load
   current_date: new Date(),                   // Date highlight
-  legend: 'show'                              // Legend showed or hidden
 })
 ```
 

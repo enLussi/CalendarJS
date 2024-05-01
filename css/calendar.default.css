@@ -19,14 +19,19 @@
   --padding-bottom-cal: 0px;
   --padding-left-cal: 0px;
   --padding-right-cal: 0px;
+
+  --legend-position: column;
 }
 
 .calendar-js {
   display: flex;
-  flex-direction: column;
+  flex-direction: var(--legend-position);
+  column-gap: 50px;
+  row-gap: 10px;
   padding: var(--padding-top-cal) var(--padding-right-cal) var(--padding-bottom-cal) var(--padding-left-cal);
 
   width: fit-content;
+  height: fit-content;
 
   box-sizing: border-box;
 
@@ -135,4 +140,28 @@
 .calendar-js .calendar-js-legends .calendar-js-legend .calendar-js-legend-description {
   text-align: start;
   font-size: var(--font-size-cells);
+}
+
+
+
+
+body {
+  display: flex;
+  flex-direction: row;
+  width: fit-content;
+  gap: 100px;
+  margin: auto;
+}
+
+
+#editor {
+  border: 1px solid #efefef;
+  border-radius: 10px;
+  padding: 10px;
+  outline: none;
+  width: 700px !important;
+  flex: 1;
+}
+
+#editor:focus {
 }

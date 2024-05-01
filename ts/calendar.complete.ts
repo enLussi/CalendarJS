@@ -37,13 +37,17 @@ type CalendarGeneralStyleCalendar = {
   padding: CalendarGeneralStyleDefaultPadding | CalendarGeneralStyleHVPadding | CalendarGeneralStyleFullPadding;
 }
 
-type CalendarLegend = 'show' | 'hide';
+type CalendarLegend = {
+  visibility: 'show' | 'hide';
+  position: 'left' | 'right' | 'bottom' | 'top';
+};
 
 
 type CalendarGeneralStyle = {
   calendar: CalendarGeneralStyleCalendar,
   cells: CalendarGeneralStyleCells,
-  font: string
+  font: string;
+  legend: CalendarLegend;
 }
 
 type CalendarDataStatus = {
@@ -65,7 +69,6 @@ type Data = {
   lang: AvailableLang;
   current_date: Date;
   display_date: Date;
-  legend: CalendarLegend
 }
 
 type AvailableLang = "FR" | "EN" | "ES" | "DE";
@@ -252,6 +255,25 @@ function applyStyle(style: CalendarGeneralStyle) {
             !!padding.horizontal && root.style.setProperty('--padding-left-cal', `${padding.horizontal}px`);
         }
       }
+      if(!!style.legend.position) {
+        switch(style.legend.position) {
+          case 'bottom':
+            root.style.setProperty('--legend-position', 'column')
+            break;
+          case 'top':
+            root.style.setProperty('--legend-position', 'column-reverse')
+            break;
+          case 'left':
+            root.style.setProperty('--legend-position', 'row-reverse')
+            break;
+          case 'right':
+            root.style.setProperty('--legend-position', 'row')
+            break;
+          default:
+            root.style.setProperty('--legend-position', 'column')
+            break;
+        }
+      }
     }
   }
 }
@@ -286,13 +308,13 @@ class Calendar {
     this.ctx            = document.querySelector(id);
     this.isCtxDefined   = !!this.ctx ? true : false;
 
-    this.current_date   = !!data.current_date ? data.current_date : new Date();
+    this.current_date   = !!data.current_date ? new Date(data.current_date) : new Date();
     this.current_year   = this.current_date.getFullYear();
     this.current_month  = this.current_date.getMonth();
     this.current_day    = this.current_date.getDate();
 
-    this.display_year   = !!data.display_date ? data.display_date.getFullYear(): this.current_date.getFullYear();
-    this.display_month  = !!data.display_date ? data.display_date.getMonth() : this.current_date.getMonth();
+    this.display_year   = !!data.display_date ? new Date(data.display_date).getFullYear(): this.current_date.getFullYear();
+    this.display_month  = !!data.display_date ? new Date(data.display_date).getMonth() : this.current_date.getMonth();
 
     this.lang           = getTranslation(data.lang);
 
@@ -300,7 +322,7 @@ class Calendar {
     this.status         = data.status;
     this.style          = data.style;
 
-    this.legend         = !!data.legend ? data.legend : 'hide';
+    this.legend         = !!data.style.legend ? data.style.legend : {} as CalendarLegend;
 
     applyStyle(this.style);
     this.create();
@@ -333,12 +355,15 @@ class Calendar {
 
     this.ctx.classList.add('calendar-js')
 
-    this.ctx.appendChild(this.create_header(this.ctx));
-    this.ctx.appendChild(this.create_days_column(this.ctx));
-    this.ctx.appendChild(this.create_weeks(this.ctx));
-    if(this.legend === 'show') {
-      this.ctx.appendChild(this.create_legends(this.ctx));
-    }
+    let cal = document.createElement('div');
+
+    cal.appendChild(this.create_header(this.ctx));
+    cal.appendChild(this.create_days_column(this.ctx));
+    cal.appendChild(this.create_weeks(this.ctx));
+
+    this.ctx.appendChild(cal);
+
+    this.ctx.appendChild(this.create_legends(this.ctx));
     return true;
   }
 
@@ -462,23 +487,27 @@ class Calendar {
 
   private create_legends(context: HTMLElement): HTMLElement {
     let calendar_legends = document.createElement('div');
-    calendar_legends.classList.add('calendar-js-legends');
-    for(let index = 0; index < this.status.length; index++) {
-      let legend = document.createElement('div');
-      legend.classList.add('calendar-js-legend');
+    if(!!this.legend.visibility && this.legend.visibility === 'show') {
+      calendar_legends.classList.add('calendar-js-legends');
+      for(let index = 0; index < this.status.length; index++) {
+        let legend = document.createElement('div');
+        legend.classList.add('calendar-js-legend');
 
-      let sample = document.createElement('div');
-      sample.classList.add('calendar-js-legend-sample');
-      sample.style.background = !!this.status[index].bg ? this.status[index].bg : "white";
+        let sample = document.createElement('div');
+        sample.classList.add('calendar-js-legend-sample');
+        sample.style.background = !!this.status[index].bg ? this.status[index].bg : "white";
 
-      let description = document.createElement('p');
-      description.classList.add('calendar-js-legend-description');
-      description.innerText = !!this.status[index].legend ? this.status[index].legend : "undefined";
+        let description = document.createElement('p');
+        description.classList.add('calendar-js-legend-description');
+        description.innerText = !!this.status[index].legend ? this.status[index].legend : "undefined";
 
-      legend.appendChild(sample);
-      legend.appendChild(description);
+        legend.appendChild(sample);
+        legend.appendChild(description);
 
-      calendar_legends.appendChild(legend);
+        calendar_legends.appendChild(legend);
+      }
+
+
     }
 
     return calendar_legends;
