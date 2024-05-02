@@ -59,7 +59,7 @@ new Calendar("#calendar", {
         right: 5,
         left: 5
       }
-    }
+    },
     cells: {                                  // Default cells style
       border: "2px solid #f2f3f4",
       borderRadius: 3,
