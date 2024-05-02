@@ -1,0 +1,24 @@
+:root{
+  --day-width: 40px;
+  --active-border: 1px solid black;
+  --background-cells: #F1F1F1;
+  --border-cells: 1px solid white;
+  --border-radius-cells: 0px;
+  --color-cells: black;
+  --empty: white;
+  --gap: 0px;
+  --font-size-cells: 14px;
+
+  --font-size-days: 20px;
+  --font-size-ym: 20px;
+  --border-cal: 1px solid #f1f1f1;
+  --border-radius-cal: 0px;
+  --background-cal: white;
+  --color-cal: black;
+  --padding-top-cal: 0px;
+  --padding-bottom-cal: 0px;
+  --padding-left-cal: 0px;
+  --padding-right-cal: 0px;
+
+  --legend-position: column;
+}
