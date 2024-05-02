@@ -88,9 +88,9 @@ Here is the list of all releases with modifications. The last release correspond
 
 ### Release 1.0.1
 
-- Add options for calendar legend
-- Add css rules for calendar
-- Convert css to scss
+Add options for calendar legend
+Add css rules for calendar
+Convert css to scss
 
 ### Release 1.0.0
 
