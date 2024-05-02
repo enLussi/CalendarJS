@@ -86,6 +86,12 @@ new Calendar("#calendar", {
 
 Here is the list of all releases with modifications. The last release correspond to the branch main in the repo.
 
+### Release 1.0.1
+
+- Add options for calendar legend
+- Add css rules for calendar
+- Convert css to scss
+
 ### Release 1.0.0
 
 First Release containing base customization
