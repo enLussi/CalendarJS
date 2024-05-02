@@ -20,7 +20,10 @@ You can clone or download the repo and build the source code with <code>npm run 
 The second parameter of the Calendar Class constructor is an array containing:
 - **calendar** : list of all the dates that will have a specific status and informations.
 - **status** : list of all the status that can be applied to dates.
-- **style** : array of css rules for the customization.
+- **style** : list of css rules for the customization.
+  + **cells** : css rules concerning cells of the calendar
+  + **calendar** : css rules concerning the calendar overall
+  + **legend** : option for legend positionning
 - **lang** : language applied to the calendar.
 - **display_date** : the date that will be use as the default month displayed on load.
 - **current_date** : the date that will be highlight (by default today)
