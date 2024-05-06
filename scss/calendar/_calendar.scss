@@ -90,7 +90,7 @@
     }
   }
 
-  .calendar-legends {
+  .calendar-js-legends {
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -106,6 +106,15 @@
         width: var(--day-width);
         height: var(--day-width);
         border-radius: var(--border-radius-cells);
+        box-sizing: border-box;
+      }
+
+      .calendar-js-legend-sample-selected {
+        border: 2px solid green;
+      }
+
+      .calendar-js-legend-sample-isSelectable {
+        cursor: pointer;
       }
 
       .calendar-js-legend-description {

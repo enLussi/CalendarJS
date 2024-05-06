@@ -71,6 +71,14 @@ type Data = {
   display_date: Date;
 }
 
+type DataEditor = {
+  status: Array<CalendarDataStatus>;
+  style: CalendarGeneralStyle;
+  lang: AvailableLang;
+  current_date: Date;
+  display_date: Date;
+}
+
 type AvailableLang = "FR" | "EN" | "ES" | "DE";
 
 type Translation = {
@@ -121,6 +129,8 @@ const MAX_WEEKS_IN_MONTH        = 6;
 const Actions = {
   UP: "calendar_reducer_up",
   DOWN: "calendar_reducer_down",
+  APPLY: "calendar_reducer_apply",
+  PICK: "calendar_reducer_pick",
 }
 
 // Utilities
@@ -540,13 +550,337 @@ class Calendar {
   }
 }
 
+//Class Editor
+
+class CalendarEditor {
+  private ctx?: HTMLElement | null;
+  private isCtxDefined: boolean;
+
+  private current_date: Date;
+  private current_year: number;
+  private current_month: number;
+  private current_day: number;
+
+  private display_year: number;
+  private display_month: number;
+
+  private lang: Translation;
+
+  private calendar: Array<CalendarData>;
+  private status: Array<CalendarDataStatus>;
+  private style: CalendarGeneralStyle;
+
+  private legend: CalendarLegend;
+
+  private picked_status: number | null;
+
+  constructor(
+    id: string, 
+    data: DataEditor
+  ) {
+
+    this.ctx            = document.querySelector(id);
+    this.isCtxDefined   = !!this.ctx ? true : false;
+
+    this.current_date   = !!data.current_date ? new Date(data.current_date) : new Date();
+    this.current_year   = this.current_date.getFullYear();
+    this.current_month  = this.current_date.getMonth();
+    this.current_day    = this.current_date.getDate();
+
+    this.display_year   = !!data.display_date ? new Date(data.display_date).getFullYear(): this.current_date.getFullYear();
+    this.display_month  = !!data.display_date ? new Date(data.display_date).getMonth() : this.current_date.getMonth();
+
+    this.lang           = getTranslation(data.lang);
+
+    this.calendar       = [];
+    this.status         = data.status;
+    this.style          = data.style;
+
+    this.legend         = !!data.style.legend ? data.style.legend : {} as CalendarLegend;
+    this.legend.visibility = "show";
+
+    this.picked_status  = null;
+
+    applyStyle(this.style);
+    this.create();
+  }
+
+  public ctxIsDefined(): boolean {
+    return this.isCtxDefined;
+  }
+
+  private reducer(action:string, data: any = null) {
+    switch(action) {
+      case Actions.UP:
+        if(this.display_month < 11){ this.display_month++ }else{ this.display_year++; this.display_month = 0; }
+        this.update()
+        break;
+      case Actions.DOWN:
+        if(this.display_month > 0){ this.display_month-- }else{ this.display_year--; this.display_month = 11; }
+        this.update()
+        break;
+      case Actions.APPLY:
+        let replace:boolean = false;
+
+        if(null !== this.picked_status && data.date instanceof Date && data.element instanceof HTMLElement) {
+          let index = 0;
+          for(index = 0; index < this.calendar.length; index++){
+            if(this.calendar[index].date === data.date) {
+              replace = true;
+              break;
+            }
+          }
+          if(!replace) {
+            this.calendar.push({
+              date: data.date,
+              status: this.picked_status
+            });
+          } else {
+            if (this.calendar[index].status === this.picked_status) {
+              this.calendar.splice(index, 1);
+              data.element.style = "";
+            } else {
+              this.calendar[index].status = this.picked_status
+            }
+          }
+          this.apply_data(data.element, data.date);
+          this.highlight_today(data.element, data.date);
+        }
+        break;
+      case Actions.PICK:
+        if(typeof data.index === "number" && data.element instanceof HTMLElement && data.parent instanceof HTMLElement) {
+          this.picked_status = data.index;
+          for(let index = 0; index < data.parent.children.length; index++) {
+            data.parent.children[index].querySelector('.calendar-js-legend-sample').classList.remove('calendar-js-legend-sample-selected')
+          }
+          data.element.classList.add('calendar-js-legend-sample-selected');
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  private create(): boolean {
+    if(null === this.ctx || undefined === this.ctx) {
+      console.error('The Context was not found. Verify the Context Id or add defer attribute on your script tag');
+      return false;
+    }
+
+    this.ctx.classList.add('calendar-js')
+
+    let cal = document.createElement('div');
+
+    cal.appendChild(this.create_header(this.ctx));
+    cal.appendChild(this.create_days_column(this.ctx));
+    cal.appendChild(this.create_weeks(this.ctx));
+
+    this.ctx.appendChild(cal);
+
+    this.ctx.appendChild(this.create_legends(this.ctx));
+    return true;
+  }
+
+  private update() {
+    if(null === this.ctx || undefined === this.ctx) {
+      console.error('The Context was not found. Verify the Context Id or add defer attribute on your script tag');
+      return false;
+    }
+    let monthElement = document.getElementById(this.ctx.id+"-month");
+
+    if(null === monthElement || undefined === monthElement) {
+      console.error('The Title was not found');
+      return false;
+    }
+
+    monthElement.innerText = `${this.lang.month[this.display_month]} ${this.display_year}`;
+
+    let display_all_days = getAllDaysInMonth(this.display_month, this.display_year);
+    for (let week = 0; week < MAX_WEEKS_IN_MONTH; week++) {
+      for (let week_day = 0; week_day < MAX_DAYS_IN_WEEK; week_day++) {
+        let index = week*7+week_day;
+        let to_update_week_day = document.querySelector("#"+this.ctx.id+" [data-day='"+index+"']");
+
+        if(to_update_week_day instanceof HTMLElement) {
+          to_update_week_day.classList.remove('calendar-js-no-day');
+
+          to_update_week_day.style.background = '';
+          to_update_week_day.style.color = '';
+          to_update_week_day.style.border = '';
+
+          let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
+          if (dateNumber instanceof Date ) { 
+            to_update_week_day.innerText = (dateNumber.getDate()).toString() 
+            this.apply_data(to_update_week_day, dateNumber);
+            this.highlight_today(to_update_week_day, dateNumber);
+          } else {
+            to_update_week_day.innerText = "" ;
+            to_update_week_day.classList.add('calendar-js-no-day');
+          }
+        }
+      }
+    }
+  }
+
+  private create_header(context: HTMLElement): HTMLElement {
+    let header = document.createElement('div');
+    header.classList.add('calendar-js-header');
+
+    let buttonDown = document.createElement('button');
+    buttonDown.classList.add('calendar-js-down');
+    buttonDown.innerText = "<";
+    buttonDown.addEventListener('pointerdown', () => {
+      this.reducer(Actions.DOWN);
+    })
+
+    let buttonUp = document.createElement('button');
+    buttonUp.classList.add('calendar-js-down');
+    buttonUp.innerText = ">";
+    buttonUp.addEventListener('pointerdown', () => {
+      this.reducer(Actions.UP);
+    })
+
+    let month = document.createElement('p'); 
+    month.classList.add('calendar-js-month'); 
+    month.innerText = `${this.lang.month[this.display_month]} ${this.display_year}`; 
+    month.id = context.id+"-month";
+
+    header.appendChild(buttonDown);
+    header.appendChild(month);
+    header.appendChild(buttonUp);
+
+    return header;
+  }
+
+  private create_days_column(context: HTMLElement): HTMLElement {
+    let days = document.createElement('div'); 
+    days.classList.add('calendar-js-days');
+
+    for (let day = 0; day < MAX_DAYS_IN_WEEK; day++) {
+      let display_day = document.createElement('div'); 
+      display_day.classList.add('calendar-js-day'); 
+      display_day.innerText = `${this.lang.weekday[day].substring(0,3)}`;
+      days.appendChild(display_day);
+    }
+
+    return days;
+  }
+
+  private create_weeks(context: HTMLElement): HTMLElement {
+    let calendar_body = document.createElement('div'); 
+    calendar_body.classList.add('calendar-js-body');
+
+    let display_all_days = getAllDaysInMonth(this.display_month, this.display_year);
+
+    for (let week = 0; week < MAX_WEEKS_IN_MONTH; week++) {
+      let display_week = document.createElement('div'); 
+      display_week.classList.add('calendar-js-week'); 
+
+      for (let week_day = 0; week_day < MAX_DAYS_IN_WEEK; week_day++) {
+        let display_week_day = document.createElement('div');
+        display_week_day.classList.add('calendar-js-week-day'); 
+        display_week_day.dataset.day = (week*7+week_day).toString();
+
+        let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
+        if (dateNumber instanceof Date) { 
+          display_week_day.innerText = (dateNumber.getDate()).toString() 
+          this.apply_data(display_week_day, dateNumber);
+          this.highlight_today(display_week_day, dateNumber);
+          display_week_day.addEventListener('pointerdown', () => {
+            this.reducer(Actions.APPLY, { element: display_week_day ,date: dateNumber});
+          })
+        } else {
+          display_week_day.innerText = "" ;
+          display_week_day.classList.add('calendar-js-no-day');
+        }
+
+        display_week.appendChild(display_week_day);
+      }
+      calendar_body.appendChild(display_week);
+    }
+
+    return calendar_body;
+  }
+
+  private create_legends(context: HTMLElement): HTMLElement {
+    let calendar_legends = document.createElement('div');
+    if(!!this.legend.visibility && this.legend.visibility === 'show') {
+      calendar_legends.classList.add('calendar-js-legends');
+      for(let index = 0; index < this.status.length; index++) {
+        let legend = document.createElement('div');
+        legend.classList.add('calendar-js-legend');
+
+        let sample = document.createElement('div');
+        sample.style.background = !!this.status[index].bg ? this.status[index].bg : "white";
+        sample.classList.add('calendar-js-legend-sample');
+        sample.classList.add('calendar-js-legend-sample-isSelectable');
+        sample.addEventListener('pointerdown', () => {
+          this.reducer(Actions.PICK, {element: sample, parent: calendar_legends, index: index})
+        });
+
+        let description = document.createElement('p');
+        description.classList.add('calendar-js-legend-description');
+        description.innerText = !!this.status[index].legend ? this.status[index].legend : "undefined";
+
+        legend.appendChild(sample);
+        legend.appendChild(description);
+
+        calendar_legends.appendChild(legend);
+      }
+
+
+    }
+
+    return calendar_legends;
+  }
+
+  private apply_data(element: HTMLElement, day: Date) {
+      this.calendar.forEach((data) => {
+        if(data.date !== undefined && day.valueOf() === data.date.valueOf()){
+          let status = !!data.status ? data.status : 0;
+          element.style.background = !!this.status[status].bg ? 
+            this.status[status].bg : 
+            !!this.style.cells.bg ? this.style.cells.bg : "#F1F1F1" ;
+          element.style.color = !!this.status[status].color ? 
+            this.status[status].color : 
+            "none";
+          element.style.border = !!this.status[status].border ? 
+            this.status[status].border : 
+            "none";
+        }
+      })
+  }
+
+  private highlight_today(element: HTMLElement, day: Date) {
+    if(isSameDate(this.current_date, day)) {
+      element.style.border = ''
+      element.classList.add('calendar-js-current-day');
+    } else {
+      element.classList.remove('calendar-js-current-day');
+    }
+  }
+
+  public save() {
+    return this.calendar;
+  }
+}
+
 window.addEventListener('load', () => {
   var CalendarJS=function(
     id: string, 
     data: Data
   ){
-  
     return new Calendar(
+      id, 
+      data
+    );
+  }   
+
+  var CalendarEditorJS=function(
+    id: string, 
+    data: DataEditor
+  ){
+    return new CalendarEditor(
       id, 
       data
     );
