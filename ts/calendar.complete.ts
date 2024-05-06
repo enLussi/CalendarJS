@@ -622,17 +622,23 @@ class CalendarEditor {
       case Actions.APPLY:
         let replace:boolean = false;
 
-        if(null !== this.picked_status && data.date instanceof Date && data.element instanceof HTMLElement) {
+        if(null !== this.picked_status && data.element instanceof HTMLElement) {
+
+          let days = getAllDaysInMonth(this.display_month, this.display_year);
+
           let index = 0;
+          let date_to_compare: Date = new Date(days[data.element.dataset.day]);
           for(index = 0; index < this.calendar.length; index++){
-            if(this.calendar[index].date === data.date) {
+            if(this.calendar[index].date === date_to_compare) {
+              
               replace = true;
               break;
             }
           }
+          console.log(date_to_compare)
           if(!replace) {
             this.calendar.push({
-              date: data.date,
+              date: date_to_compare,
               status: this.picked_status
             });
           } else {
@@ -643,8 +649,9 @@ class CalendarEditor {
               this.calendar[index].status = this.picked_status
             }
           }
-          this.apply_data(data.element, data.date);
-          this.highlight_today(data.element, data.date);
+          // this.apply_data(data.element, data.date);
+          // this.highlight_today(data.element, data.date);
+          this.update();
         }
         break;
       case Actions.PICK:
@@ -787,7 +794,7 @@ class CalendarEditor {
           this.apply_data(display_week_day, dateNumber);
           this.highlight_today(display_week_day, dateNumber);
           display_week_day.addEventListener('pointerdown', () => {
-            this.reducer(Actions.APPLY, { element: display_week_day ,date: dateNumber});
+            this.reducer(Actions.APPLY, {element: display_week_day});
           })
         } else {
           display_week_day.innerText = "" ;
