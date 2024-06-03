@@ -623,6 +623,8 @@ class CalendarEditor {
 
   private picked_status: number | null;
 
+  private pointerIsDown: boolean;
+
   constructor(
     id: string, 
     data: DataEditor
@@ -649,6 +651,11 @@ class CalendarEditor {
     // this.legend.visibility = "show";
 
     this.picked_status  = null;
+
+    this.pointerIsDown = false;
+    window.addEventListener('pointerup', () => {
+      this.pointerIsDown = false;
+    })
 
     applyStyle(this.style);
     this.create();
@@ -856,6 +863,13 @@ class CalendarEditor {
 
         display_week_day.addEventListener('pointerdown', () => {
           this.reducer(Actions.APPLY, {element: display_week_day});
+          this.pointerIsDown = true;
+        })
+
+        display_week_day.addEventListener('pointerenter', () => {
+          if(this.pointerIsDown) {
+            this.reducer(Actions.APPLY, {element: display_week_day});
+          }
         })
 
         display_week.appendChild(display_week_day);

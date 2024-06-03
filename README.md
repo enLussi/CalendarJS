@@ -86,6 +86,10 @@ new Calendar("#calendar", {
 
 Here is the list of all releases with modifications. The last release correspond to the branch main in the repo.
 
+### Release 1.1
+
+- Add CalendarEditor with Edition function
+
 ### Release 1.0.1
 
 - Add options for calendar legend
