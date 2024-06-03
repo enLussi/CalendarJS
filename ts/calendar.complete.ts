@@ -37,6 +37,10 @@ type CalendarGeneralStyleCalendar = {
   padding: CalendarGeneralStyleDefaultPadding | CalendarGeneralStyleHVPadding | CalendarGeneralStyleFullPadding;
 }
 
+type CalendarGeneralStyleEvents = {
+  defaultbg: string;
+}
+
 type CalendarLegend = {
   visibility: 'show' | 'hide';
   position: 'left' | 'right' | 'bottom' | 'top';
@@ -45,6 +49,7 @@ type CalendarLegend = {
 
 type CalendarGeneralStyle = {
   calendar: CalendarGeneralStyleCalendar,
+  events: CalendarGeneralStyleEvents;
   cells: CalendarGeneralStyleCells,
   font: string;
   legend: CalendarLegend;
@@ -62,9 +67,19 @@ type CalendarData = {
   status: number,
 }
 
+type CalendarDataEventsType = 'adhoc' | 'extended';
+
+type CalendarDataEvents = {
+  title: string;
+  description: string;
+  type: CalendarDataEventsType;
+  date: Date;
+}
+
 type Data = {
   calendar: Array<CalendarData>;
   status: Array<CalendarDataStatus>;
+  events: Array<CalendarDataEvents>;
   style: CalendarGeneralStyle;
   lang: AvailableLang;
   current_date: Date;
@@ -73,6 +88,7 @@ type Data = {
 
 type DataEditor = {
   status: Array<CalendarDataStatus>;
+  events: Array<CalendarDataEvents>;
   style: CalendarGeneralStyle;
   lang: AvailableLang;
   current_date: Date;
@@ -228,7 +244,6 @@ function applyStyle(style: CalendarGeneralStyle) {
       !!style.cells.fontSize && root.style.setProperty('--font-size-cells', `${style.cells.fontSize}px`);
     }
 
-
     //Calendar
     if(!!style.calendar) {
       !!style.calendar.fontSizeDays && root.style.setProperty('--font-size-days', `${style.calendar.fontSizeDays}px`);
@@ -298,6 +313,11 @@ function applyStyle(style: CalendarGeneralStyle) {
         }
       }
     }
+
+    //Events
+    if(!!style.events) {
+      !!style.events.defaultbg && root.style.setProperty('--events-default-bg', style.events.defaultbg);
+    }
   }
 }
 
@@ -319,6 +339,7 @@ class Calendar {
 
   private calendar: Array<CalendarData>;
   private status: Array<CalendarDataStatus>;
+  private events: Array<CalendarDataEvents>;
   private style: CalendarGeneralStyle;
 
   private legend: CalendarLegend;
@@ -341,9 +362,10 @@ class Calendar {
 
     this.lang           = getTranslation(data.lang);
 
-    this.calendar       = data.calendar;
-    this.status         = data.status;
-    this.style          = data.style;
+    this.calendar       = !!data.calendar ? data.calendar : {} as Array<CalendarData>;
+    this.status         = !!data.status ? data.status : {} as Array<CalendarDataStatus>;
+    this.style          = !!data.style ? data.style : {} as CalendarGeneralStyle;
+    this.events         = !!data.events ? data.events : {} as Array<CalendarDataEvents>;
 
     this.legend         = !!data.style.legend ? data.style.legend : {} as CalendarLegend;
 
@@ -427,7 +449,7 @@ class Calendar {
 
           let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
           if (dateNumber instanceof Date ) { 
-            to_update_week_day.innerText = (dateNumber.getDate()).toString() 
+            to_update_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>" 
             this.apply_data(to_update_week_day, dateNumber);
             this.highlight_today(to_update_week_day, dateNumber);
           } else {
@@ -501,7 +523,7 @@ class Calendar {
 
         let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
         if (dateNumber instanceof Date) { 
-          display_week_day.innerText = (dateNumber.getDate()).toString() 
+          display_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>"  
           this.apply_data(display_week_day, dateNumber);
           this.highlight_today(display_week_day, dateNumber);
         } else {
@@ -547,7 +569,7 @@ class Calendar {
 
   private apply_data(element: HTMLElement, day: Date) {
       this.calendar.forEach((data) => {
-        if(data.date !== undefined && day.valueOf() === data.date.valueOf()){
+        if(data.date !== undefined && day.getTime() === data.date.getTime()){
           let status = !!data.status ? data.status : 0;
           if(data.status < this.status.length) {
             element.style.background = !!this.status[status].bg ? 
@@ -559,6 +581,18 @@ class Calendar {
             element.style.border = !!this.status[status].border ? 
               this.status[status].border : 
               "none";
+          }
+        }
+      })
+
+      this.events.forEach((data) => {
+        console.log(day.getTime().toString().substring(0,6), data.date.getTime().toString().substring(0,6))
+        if(data.date !== undefined && day.getTime().toString().substring(0,6) === data.date.getTime().toString().substring(0,6)){
+          if(data.type === 'adhoc') {
+            element.querySelector('span')?.classList.add('calendar-js-event-adhoc');
+          }
+          if(data.type === 'extended') {
+            element.querySelector('span')?.classList.add('calendar-js-event-extended');
           }
         }
       })
@@ -584,6 +618,7 @@ class Calendar {
   public useData(data: Data) {
     this.calendar = data.calendar;
     this.status = data.status;
+    this.events = data.events;
     this.stylize(data.style);
     this.changeLang(data.lang)
     this.create();
@@ -618,6 +653,7 @@ class CalendarEditor {
   private calendar: Array<CalendarData>;
   private status: Array<CalendarDataStatus>;
   private style: CalendarGeneralStyle;
+  private events: Array<CalendarDataEvents>;
 
   private legend: CalendarLegend;
 
@@ -644,8 +680,9 @@ class CalendarEditor {
     this.lang           = getTranslation(data.lang);
 
     this.calendar       = [];
-    this.status         = data.status;
-    this.style          = data.style;
+    this.status         = !!data.status ? data.status : {} as Array<CalendarDataStatus>;
+    this.style          = !!data.style ? data.style : {} as CalendarGeneralStyle;
+    this.events         = !!data.events ? data.events : {} as Array<CalendarDataEvents>;
 
     this.legend         = !!data.style.legend ? data.style.legend : {} as CalendarLegend;
     // this.legend.visibility = "show";
@@ -779,7 +816,7 @@ class CalendarEditor {
 
           let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
           if (dateNumber instanceof Date ) { 
-            to_update_week_day.innerText = (dateNumber.getDate()).toString() 
+            to_update_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>" 
             this.apply_data(to_update_week_day, dateNumber);
             this.highlight_today(to_update_week_day, dateNumber);
           } else {
@@ -852,7 +889,7 @@ class CalendarEditor {
 
         let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
         if (dateNumber instanceof Date) { 
-          display_week_day.innerText = (dateNumber.getDate()).toString() 
+          display_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>" 
           this.apply_data(display_week_day, dateNumber);
           this.highlight_today(display_week_day, dateNumber);
 
@@ -931,6 +968,16 @@ class CalendarEditor {
           }
         }
       })
+      this.events.forEach((data) => {
+        if(data.date !== undefined && day.getTime().toString().substring(0,6) === data.date.getTime().toString().substring(0,6)){
+          if(data.type === 'adhoc') {
+            element.querySelector('span')?.classList.add('calendar-js-event-adhoc');
+          }
+          if(data.type === 'extended') {
+            element.querySelector('span')?.classList.add('calendar-js-event-extended');
+          }
+        }
+      })
   }
 
   private highlight_today(element: HTMLElement, day: Date) {
@@ -953,6 +1000,7 @@ class CalendarEditor {
   public useData(data: Data) {
     this.calendar = data.calendar;
     this.status = data.status;
+    this.events = data.events;
     this.stylize(data.style);
     this.changeLang(data.lang)
     this.create();

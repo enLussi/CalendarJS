@@ -77,6 +77,34 @@
         align-items: center;
 
         user-select: none;
+
+        position: relative;
+
+        span.calendar-js-event-adhoc {
+          position: absolute;
+          top: 2px;
+          right: 2px;
+          background: var(--events-default-bg);
+          height: 0.6em;
+          width: 0.6em;
+          text-align: center;
+          border-radius: 50%;
+        }
+
+        span.calendar-js-event-extended {
+          position: absolute;
+          box-sizing: border-box;
+          bottom: 0px;
+          right: 50%;
+          transform: translateX(50%);
+          margin: 2px 0px;
+          background: var(--events-default-bg);
+          height: 0.6em;
+          width: 75%;
+          text-align: center;
+          border-radius: 0.3em;
+          
+        }
       }
 
       .calendar-js-current-day {
