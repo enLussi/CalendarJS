@@ -91,7 +91,7 @@
   }
 
   .calendar-js-legends {
-    display: flex;
+    display: var(--legend-visibility);
     flex-direction: column;
     width: 100%;
 

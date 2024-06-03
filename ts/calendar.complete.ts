@@ -284,6 +284,19 @@ function applyStyle(style: CalendarGeneralStyle) {
             break;
         }
       }
+      if(!!style.legend.visibility) {
+        switch(style.legend.visibility) {
+          case 'hide':
+            root.style.setProperty('--legend-visibility', 'none')
+            break;
+          case 'show':
+            root.style.setProperty('--legend-visibility', 'flex')
+            break;
+          default:
+            root.style.setProperty('--legend-visibility', 'none')
+            break;
+        }
+      }
     }
   }
 }
@@ -362,6 +375,7 @@ class Calendar {
       console.error('The Context was not found. Verify the Context Id or add defer attribute on your script tag');
       return false;
     }
+    this.ctx.innerHTML = "";
 
     this.ctx.classList.add('calendar-js')
 
@@ -383,6 +397,7 @@ class Calendar {
       return false;
     }
     let monthElement = document.getElementById(this.ctx.id+"-month");
+    let daysElement = document.querySelectorAll(".calendar-js-day");
 
     if(null === monthElement || undefined === monthElement) {
       console.error('The Title was not found');
@@ -390,6 +405,12 @@ class Calendar {
     }
 
     monthElement.innerText = `${this.lang.month[this.display_month]} ${this.display_year}`;
+
+    for (let day = 0; day < MAX_DAYS_IN_WEEK; day++) {
+      daysElement[day].innerHTML = `${this.lang.weekday[day].substring(0,3)}`;
+    }
+
+    this.create_legends(this.ctx);
 
     let display_all_days = getAllDaysInMonth(this.display_month, this.display_year);
     for (let week = 0; week < MAX_WEEKS_IN_MONTH; week++) {
@@ -416,6 +437,7 @@ class Calendar {
         }
       }
     }
+
   }
 
   private create_header(context: HTMLElement): HTMLElement {
@@ -516,8 +538,8 @@ class Calendar {
 
         calendar_legends.appendChild(legend);
       }
-
-
+    } else {
+      calendar_legends.style.display = 'none';
     }
 
     return calendar_legends;
@@ -527,15 +549,17 @@ class Calendar {
       this.calendar.forEach((data) => {
         if(data.date !== undefined && day.valueOf() === data.date.valueOf()){
           let status = !!data.status ? data.status : 0;
-          element.style.background = !!this.status[status].bg ? 
-            this.status[status].bg : 
-            !!this.style.cells.bg ? this.style.cells.bg : "#F1F1F1" ;
-          element.style.color = !!this.status[status].color ? 
-            this.status[status].color : 
-            "none";
-          element.style.border = !!this.status[status].border ? 
-            this.status[status].border : 
-            "none";
+          if(data.status < this.status.length) {
+            element.style.background = !!this.status[status].bg ? 
+              this.status[status].bg : 
+              !!this.style.cells.bg ? this.style.cells.bg : "#F1F1F1" ;
+            element.style.color = !!this.status[status].color ? 
+              this.status[status].color : 
+              "none";
+            element.style.border = !!this.status[status].border ? 
+              this.status[status].border : 
+              "none";
+          }
         }
       })
   }
@@ -547,6 +571,31 @@ class Calendar {
     } else {
       element.classList.remove('calendar-js-current-day');
     }
+  }
+
+  public save() {
+    return this.calendar;
+  }
+
+  public stylize(style: CalendarGeneralStyle) {
+    applyStyle(style);
+  }
+
+  public useData(data: Data) {
+    this.calendar = data.calendar;
+    this.status = data.status;
+    this.stylize(data.style);
+    this.changeLang(data.lang)
+    this.create();
+  }
+
+  public changeEntries(calendar: Array<CalendarData>) {
+    this.calendar = calendar;
+    this.update();
+  }
+
+  public changeLang(lang: AvailableLang) {
+    this.lang = getTranslation(lang);
   }
 }
 
@@ -597,7 +646,7 @@ class CalendarEditor {
     this.style          = data.style;
 
     this.legend         = !!data.style.legend ? data.style.legend : {} as CalendarLegend;
-    this.legend.visibility = "show";
+    // this.legend.visibility = "show";
 
     this.picked_status  = null;
 
@@ -628,14 +677,13 @@ class CalendarEditor {
 
           let index = 0;
           let date_to_compare: Date = new Date(days[data.element.dataset.day]);
+          
           for(index = 0; index < this.calendar.length; index++){
-            if(this.calendar[index].date === date_to_compare) {
-              
+            if(this.calendar[index].date.getTime() === date_to_compare.getTime()) {
               replace = true;
               break;
             }
           }
-          console.log(date_to_compare)
           if(!replace) {
             this.calendar.push({
               date: date_to_compare,
@@ -674,6 +722,8 @@ class CalendarEditor {
       return false;
     }
 
+    this.ctx.innerHTML = "";
+
     this.ctx.classList.add('calendar-js')
 
     let cal = document.createElement('div');
@@ -694,10 +744,15 @@ class CalendarEditor {
       return false;
     }
     let monthElement = document.getElementById(this.ctx.id+"-month");
+    let daysElement = document.querySelectorAll(".calendar-js-day");
 
     if(null === monthElement || undefined === monthElement) {
       console.error('The Title was not found');
       return false;
+    }
+
+    for (let day = 0; day < MAX_DAYS_IN_WEEK; day++) {
+      daysElement[day].innerHTML = `${this.lang.weekday[day].substring(0,3)}`;
     }
 
     monthElement.innerText = `${this.lang.month[this.display_month]} ${this.display_year}`;
@@ -793,13 +848,15 @@ class CalendarEditor {
           display_week_day.innerText = (dateNumber.getDate()).toString() 
           this.apply_data(display_week_day, dateNumber);
           this.highlight_today(display_week_day, dateNumber);
-          display_week_day.addEventListener('pointerdown', () => {
-            this.reducer(Actions.APPLY, {element: display_week_day});
-          })
+
         } else {
           display_week_day.innerText = "" ;
           display_week_day.classList.add('calendar-js-no-day');
         }
+
+        display_week_day.addEventListener('pointerdown', () => {
+          this.reducer(Actions.APPLY, {element: display_week_day});
+        })
 
         display_week.appendChild(display_week_day);
       }
@@ -836,6 +893,8 @@ class CalendarEditor {
       }
 
 
+    } else {
+      calendar_legends.style.display = 'none';
     }
 
     return calendar_legends;
@@ -845,15 +904,17 @@ class CalendarEditor {
       this.calendar.forEach((data) => {
         if(data.date !== undefined && day.valueOf() === data.date.valueOf()){
           let status = !!data.status ? data.status : 0;
-          element.style.background = !!this.status[status].bg ? 
-            this.status[status].bg : 
-            !!this.style.cells.bg ? this.style.cells.bg : "#F1F1F1" ;
-          element.style.color = !!this.status[status].color ? 
-            this.status[status].color : 
-            "none";
-          element.style.border = !!this.status[status].border ? 
-            this.status[status].border : 
-            "none";
+          if(data.status < this.status.length) {
+            element.style.background = !!this.status[status].bg ? 
+              this.status[status].bg : 
+              !!this.style.cells.bg ? this.style.cells.bg : "#F1F1F1" ;
+            element.style.color = !!this.status[status].color ? 
+              this.status[status].color : 
+              "none";
+            element.style.border = !!this.status[status].border ? 
+              this.status[status].border : 
+              "none";
+          }
         }
       })
   }
@@ -869,6 +930,28 @@ class CalendarEditor {
 
   public save() {
     return this.calendar;
+  }
+
+  public stylize(style: CalendarGeneralStyle) {
+    applyStyle(style);
+  }
+
+  public useData(data: Data) {
+    this.calendar = data.calendar;
+    this.status = data.status;
+    this.stylize(data.style);
+    this.changeLang(data.lang)
+    this.create();
+  }
+
+  public changeEntries(calendar: Array<CalendarData>) {
+    this.calendar = calendar;
+    this.update();
+  }
+
+  public changeLang(lang: AvailableLang) {
+    this.lang = getTranslation(lang);
+    this.update();
   }
 }
 
