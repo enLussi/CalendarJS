@@ -14,6 +14,16 @@
   border-radius: var(--border-radius-cal);
   background: var(--background-cal);
 
+  position: relative;
+
+  .calendar-js-card-event {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+  }
+
   .calendar-js-header {
     display: flex;
     flex-direction: row;

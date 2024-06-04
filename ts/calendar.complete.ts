@@ -586,16 +586,40 @@ class Calendar {
       })
 
       this.events.forEach((data) => {
-        console.log(day.getTime().toString().substring(0,6), data.date.getTime().toString().substring(0,6))
         if(data.date !== undefined && day.getTime().toString().substring(0,6) === data.date.getTime().toString().substring(0,6)){
+          let card_reducer = () => {
+            this.open_card_event(data);
+          }
+
+
+
           if(data.type === 'adhoc') {
             element.querySelector('span')?.classList.add('calendar-js-event-adhoc');
+            element.style.cursor = 'pointer'
           }
           if(data.type === 'extended') {
             element.querySelector('span')?.classList.add('calendar-js-event-extended');
+            element.style.cursor = 'pointer'
           }
+          // Clone to remove event Listener more efficiently
+          let clone = element.cloneNode(true);
+          element.parentNode?.replaceChild(clone, element);
+          clone.addEventListener('pointerdown', card_reducer, true)
         }
       })
+  }
+
+  public open_card_event(data: CalendarDataEvents) {
+    let card = document.createElement('div');
+    card.classList.add('calendar-js-card-event');
+    let close_button = document.createElement('button')
+    close_button.innerHTML = "X"
+    card.innerHTML = `${data.title} ${data.description} ${data.date.toLocaleDateString()}`;
+    card.appendChild(close_button);
+    close_button.addEventListener('pointerdown', () => {
+      card.remove();
+    });
+    this.ctx?.appendChild(card);
   }
 
   private highlight_today(element: HTMLElement, day: Date) {
@@ -890,14 +914,14 @@ class CalendarEditor {
         let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
         if (dateNumber instanceof Date) { 
           display_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>" 
+          display_week_day.style.cursor = 'pointer'
           this.apply_data(display_week_day, dateNumber);
           this.highlight_today(display_week_day, dateNumber);
-
         } else {
           display_week_day.innerText = "" ;
           display_week_day.classList.add('calendar-js-no-day');
         }
-
+        
         display_week_day.addEventListener('pointerdown', () => {
           this.reducer(Actions.APPLY, {element: display_week_day});
           this.pointerIsDown = true;
