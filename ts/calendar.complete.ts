@@ -381,11 +381,11 @@ class Calendar {
     switch(action) {
       case Actions.UP:
         if(this.display_month < 11){ this.display_month++ }else{ this.display_year++; this.display_month = 0; }
-        this.update()
+        this.create();
         break;
       case Actions.DOWN:
         if(this.display_month > 0){ this.display_month-- }else{ this.display_year--; this.display_month = 11; }
-        this.update()
+        this.create();
         break;
       default:
         break;
@@ -413,54 +413,55 @@ class Calendar {
     return true;
   }
 
-  private update() {
-    if(null === this.ctx || undefined === this.ctx) {
-      console.error('The Context was not found. Verify the Context Id or add defer attribute on your script tag');
-      return false;
-    }
-    let monthElement = document.getElementById(this.ctx.id+"-month");
-    let daysElement = document.querySelectorAll(".calendar-js-day");
+  // private update() {
+  //   if(null === this.ctx || undefined === this.ctx) {
+  //     console.error('The Context was not found. Verify the Context Id or add defer attribute on your script tag');
+  //     return false;
+  //   }
+  //   let monthElement = document.getElementById(this.ctx.id+"-month");
+  //   let daysElement = document.querySelectorAll(".calendar-js-day");
 
-    if(null === monthElement || undefined === monthElement) {
-      console.error('The Title was not found');
-      return false;
-    }
+  //   if(null === monthElement || undefined === monthElement) {
+  //     console.error('The Title was not found');
+  //     return false;
+  //   }
 
-    monthElement.innerText = `${this.lang.month[this.display_month]} ${this.display_year}`;
+  //   monthElement.innerText = `${this.lang.month[this.display_month]} ${this.display_year}`;
 
-    for (let day = 0; day < MAX_DAYS_IN_WEEK; day++) {
-      daysElement[day].innerHTML = `${this.lang.weekday[day].substring(0,3)}`;
-    }
+  //   for (let day = 0; day < MAX_DAYS_IN_WEEK; day++) {
+  //     daysElement[day].innerHTML = `${this.lang.weekday[day].substring(0,3)}`;
+  //   }
 
-    this.create_legends(this.ctx);
+  //   this.create_legends(this.ctx);
 
-    let display_all_days = getAllDaysInMonth(this.display_month, this.display_year);
-    for (let week = 0; week < MAX_WEEKS_IN_MONTH; week++) {
-      for (let week_day = 0; week_day < MAX_DAYS_IN_WEEK; week_day++) {
-        let index = week*7+week_day;
-        let to_update_week_day = document.querySelector("#"+this.ctx.id+" [data-day='"+index+"']");
+  //   let display_all_days = getAllDaysInMonth(this.display_month, this.display_year);
+  //   for (let week = 0; week < MAX_WEEKS_IN_MONTH; week++) {
+  //     for (let week_day = 0; week_day < MAX_DAYS_IN_WEEK; week_day++) {
+  //       let index = week*7+week_day;
+  //       let to_update_week_day = document.querySelector("#"+this.ctx.id+" [data-day='"+index+"']");
 
-        if(to_update_week_day instanceof HTMLElement) {
-          to_update_week_day.classList.remove('calendar-js-no-day');
+  //       if(to_update_week_day instanceof HTMLElement) {
+  //         to_update_week_day.classList.remove('calendar-js-no-day');
 
-          to_update_week_day.style.background = '';
-          to_update_week_day.style.color = '';
-          to_update_week_day.style.border = '';
+  //         to_update_week_day.style.background = '';
+  //         to_update_week_day.style.color = '';
+  //         to_update_week_day.style.border = '';
 
-          let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
-          if (dateNumber instanceof Date ) { 
-            to_update_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>" 
-            this.apply_data(to_update_week_day, dateNumber);
-            this.highlight_today(to_update_week_day, dateNumber);
-          } else {
-            to_update_week_day.innerText = "" ;
-            to_update_week_day.classList.add('calendar-js-no-day');
-          }
-        }
-      }
-    }
+  //         let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
+  //         if (dateNumber instanceof Date ) { 
+  //           to_update_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>" 
+  //           this.apply_data(to_update_week_day, dateNumber);
+  //           this.highlight_today(to_update_week_day, dateNumber);
+  //           this.apply_event(to_update_week_day, dateNumber);
+  //         } else {
+  //           to_update_week_day.innerText = "" ;
+  //           to_update_week_day.classList.add('calendar-js-no-day');
+  //         }
+  //       }
+  //     }
+  //   }
 
-  }
+  // }
 
   private create_header(context: HTMLElement): HTMLElement {
     let header = document.createElement('div');
@@ -522,16 +523,16 @@ class Calendar {
         display_week_day.dataset.day = (week*7+week_day).toString();
 
         let dateNumber = display_all_days[getDateIndexInCalendar(week, week_day)];
+        display_week.appendChild(display_week_day);
         if (dateNumber instanceof Date) { 
           display_week_day.innerHTML = (dateNumber.getDate()).toString()+"<span></span>"  
           this.apply_data(display_week_day, dateNumber);
           this.highlight_today(display_week_day, dateNumber);
+          this.apply_event(display_week_day, dateNumber);
         } else {
           display_week_day.innerText = "" ;
           display_week_day.classList.add('calendar-js-no-day');
         }
-
-        display_week.appendChild(display_week_day);
       }
       calendar_body.appendChild(display_week);
     }
@@ -584,37 +585,38 @@ class Calendar {
           }
         }
       })
-
-      this.events.forEach((data) => {
-        if(data.date !== undefined && day.getTime().toString().substring(0,6) === data.date.getTime().toString().substring(0,6)){
-          let card_reducer = () => {
-            this.open_card_event(data);
-          }
-
-
-
-          if(data.type === 'adhoc') {
-            element.querySelector('span')?.classList.add('calendar-js-event-adhoc');
-            element.style.cursor = 'pointer'
-          }
-          if(data.type === 'extended') {
-            element.querySelector('span')?.classList.add('calendar-js-event-extended');
-            element.style.cursor = 'pointer'
-          }
-          // Clone to remove event Listener more efficiently
-          let clone = element.cloneNode(true);
-          element.parentNode?.replaceChild(clone, element);
-          clone.addEventListener('pointerdown', card_reducer, true)
-        }
-      })
   }
 
-  public open_card_event(data: CalendarDataEvents) {
+  private apply_event(element: HTMLElement, day: Date) {
+    this.events.forEach((data) => {
+      if(data.date !== undefined && day.getTime().toString().substring(0,6) === data.date.getTime().toString().substring(0,6)){
+        let card_reducer = () => {
+          this.open_card_event(this.events, day);
+        }
+        if(data.type === 'adhoc') {
+          element.querySelector('span')?.classList.add('calendar-js-event-adhoc');
+          element.style.cursor = 'pointer'
+        }
+        if(data.type === 'extended') {
+          element.querySelector('span')?.classList.add('calendar-js-event-extended');
+          element.style.cursor = 'pointer'
+        }
+        element.addEventListener('pointerdown', card_reducer, true)
+      }
+    })
+  }
+
+  public open_card_event(data: Array<CalendarDataEvents>, date: Date) {
     let card = document.createElement('div');
     card.classList.add('calendar-js-card-event');
     let close_button = document.createElement('button')
     close_button.innerHTML = "X"
-    card.innerHTML = `${data.title} ${data.description} ${data.date.toLocaleDateString()}`;
+    card.innerHTML = "";
+    data.forEach((ev) => {
+      if(date.getTime().toString().substring(0,6) === ev.date.getTime().toString().substring(0,6)) {
+        card.innerHTML += `${ev.title} ${ev.description} ${ev.date.toLocaleDateString()}`;
+      }
+    })
     card.appendChild(close_button);
     close_button.addEventListener('pointerdown', () => {
       card.remove();
@@ -648,10 +650,10 @@ class Calendar {
     this.create();
   }
 
-  public changeEntries(calendar: Array<CalendarData>) {
-    this.calendar = calendar;
-    this.update();
-  }
+  // public changeEntries(calendar: Array<CalendarData>) {
+  //   this.calendar = calendar;
+  //   this.update();
+  // }
 
   public changeLang(lang: AvailableLang) {
     this.lang = getTranslation(lang);
